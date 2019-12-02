@@ -6,47 +6,40 @@ using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
-
-    private string username;
-    private string password;
     public GameObject usernameField;
     public GameObject passwordField;
-    public bool guest;
 
-    public static MenuManager instance;
+    public GameObject saveButton;
+    public GameObject loadButton;
+
+    public User user;
 
     void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        Scene scene = SceneManager.GetActiveScene();
+        user = FindObjectOfType<User>();
 
-        
-
-        DontDestroyOnLoad(gameObject);
+        if (scene.buildIndex == 1)
+        {
+            //foreach
+        }
     }
 
     public void checkSignIn()
     {
-        username = usernameField.GetComponent<Text>().text;
-        password = passwordField.GetComponent<Text>().text;
+        user.username = usernameField.GetComponent<InputField>().text;
+        user.password = passwordField.GetComponent<InputField>().text;
     }
 
     public void PlayGameGuest()
     {
-        guest = false;
+        user.guest = true;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 
     public void PlayGameUser()
     {
-        Debug.Log("This worked");
-        guest = true;
+        user.guest = false;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 
@@ -62,14 +55,19 @@ public class MenuManager : MonoBehaviour
 
     public void loadOptions()
     {
-        /*if (guest)
+        if (!user.guest)
         {
-            foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("UserOptions"))
+            /*foreach (GameObject gameObject in GameObject.FindGameObjectsWithTag("UserButtons"))
             {
-                gameObject.active = false;
-            }
+                
+            }*/
+            saveButton.SetActive(true);
+            loadButton.SetActive(true);
             
         }
-        */
+        else
+        {
+
+        }
     }
 }
