@@ -1,7 +1,44 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+
+[Serializable]
+public class RefractableMaterials
+{
+    [SerializeField]
+    public List<RefractableMaterialModel> materials;
+
+    public RefractableMaterials()
+    {
+        materials = new List<RefractableMaterialModel>();
+    }
+}
+
+[Serializable]
+public class RefractableMaterialModel
+{
+    public RefractableMaterialModel(int pr, float n, Vector3 pos, Quaternion rot)
+    {
+        presetRefraction = pr;
+        this.n = n;
+        this.pos = pos;
+        this.rot = rot;
+    }
+
+    [SerializeField]
+    public int presetRefraction;
+
+    [SerializeField]
+    public float n;
+
+    [SerializeField]
+    public Vector3 pos;
+
+    [SerializeField]
+    public Quaternion rot;
+}
 
 public class RefractableMaterial : MonoBehaviour
 {
@@ -30,13 +67,13 @@ public class RefractableMaterial : MonoBehaviour
     };
 
     public Text text;
-
+    
     private IndexesOfRefraction presetRefraction;
-
+    
     private float n;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         presetRefraction = IndexesOfRefraction.WINDOW_GLASS;
 
@@ -51,6 +88,16 @@ public class RefractableMaterial : MonoBehaviour
     public void SetCustomRefraction(float n)
     {
         this.n = n;
+    }
+
+    public void SetPos(Vector3 pos)
+    {
+        transform.position = pos;
+    }
+
+    public void SetRot(Quaternion rot)
+    {
+        transform.rotation = rot;
     }
 
     public int GetPresetIndex()
@@ -101,5 +148,10 @@ public class RefractableMaterial : MonoBehaviour
             default:
                 return n;
         }
+    }
+
+    public float GetN()
+    {
+        return n;
     }
 }

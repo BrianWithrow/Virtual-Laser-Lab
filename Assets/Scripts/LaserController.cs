@@ -1,6 +1,20 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+[Serializable]
+public class LaserModel
+{
+    public Vector3 pos;
+    public Quaternion rot;
+
+    public LaserModel(Vector3 pos, Quaternion rot)
+    {
+        this.pos = pos;
+        this.rot = rot;
+    }
+}
 
 public class LaserController : MonoBehaviour
 {
