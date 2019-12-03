@@ -30,6 +30,8 @@ public class MenuManager : MonoBehaviour
     {
         //As the lab begins it will allow only one user to have its credentials filled.
         user = FindObjectOfType<User>();
+        passwordField.GetComponent<InputField>().inputType = InputField.InputType.Password;
+        passwordFieldSignIn.GetComponent<InputField>().inputType = InputField.InputType.Password;
     }
 
     public void SignIn()
