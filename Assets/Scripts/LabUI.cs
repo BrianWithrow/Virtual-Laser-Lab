@@ -211,7 +211,7 @@ public class LabUI : MonoBehaviour
 
     public void ToggleChange()
     {
-        lm.obj.GetComponent<SnellRefraction>().enabled = laserEnabled.isOn;
+        lm.obj.GetComponent<LaserController>().enabled = laserEnabled.isOn;
         lm.obj.GetComponent<LineRenderer>().enabled = laserEnabled.isOn;
     }
 

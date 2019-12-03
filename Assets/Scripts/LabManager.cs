@@ -50,22 +50,12 @@ public class LabManager : MonoBehaviour
 
         drag = false;
 
-        save = false;
-
-        loading = true;
-
         Load();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (save)
-        {
-            save = false;
-            Save();
-        }
-
         if (Input.GetMouseButton(0))
         {
             RaycastHit hitInfo = new RaycastHit();
@@ -144,7 +134,7 @@ public class LabManager : MonoBehaviour
         return rms.Count;
     }
 
-    void Save()
+    public void Save()
     {
         LaserModel lm = new LaserModel(laser.transform.position, laser.transform.rotation);
 
@@ -165,39 +155,47 @@ public class LabManager : MonoBehaviour
 
         string json = JsonUtility.ToJson(li);
 
-        //string path = "Assets/test.json";
-        //
-        ////Write some text to the test.txt file
-        //StreamWriter writer = new StreamWriter(path, true);
-        //writer.WriteLine(json);
-        //writer.Close();
+        User user = FindObjectOfType<User>();
 
-        StartCoroutine(UpdateUser("gregL", "12345", json));
+        StartCoroutine(UpdateUser(user.username, user.password, json));
     }
 
-    void Load()
+    public void Load()
     {
-        StartCoroutine(LoadInstance("gregL"));
+        User user = FindObjectOfType<User>();
+
+        if (!user.guest)
+        {
+            StartCoroutine(LoadInstance(user.username));
+        }
     }
 
     IEnumerator UpdateUser(string username, string password, string instance)
     {
-        string secretKey = "virtual-laser-lab"; // Edit this value and make sure it's the same as the one stored on the server
-        string updateUserURL = "http://localhost/updateuser.php?"; //be sure to add a ? to your url
-
-        //This connects to a server side php script that will add the name and score to a MySQL DB.
-        // Supply it with a string representing the players name and the players score.
+        string secretKey = "virtual-laser-lab";
+        string updateUserURL = "http://localhost/updateuser.php?";
+        
         string hash = Md5Sum(username + password + secretKey);
 
-        string post_url = updateUserURL + "username=" + UnityWebRequest.EscapeURL(username) + "&password=" + password + "&instance=" + instance + "&hash=" + hash;
+        string get_url = updateUserURL + "username=" + UnityWebRequest.EscapeURL(username) + "&password=" + password + "&instance=" + instance + "&hash=" + hash;
 
-        // Post the URL to the site and create a download object to get the result.
-        UnityWebRequest hs_post = UnityWebRequest.Get(post_url);
-        yield return hs_post; // Wait until the download is done
+        Debug.Log(get_url);
+        
+        UnityWebRequest hs_post = UnityWebRequest.Get(get_url);
+
+        Debug.Log("Saving");
+
+        yield return hs_post.SendWebRequest();
+
+        Debug.Log("Done saving");
 
         if (hs_post.error != null)
         {
             Debug.Log("There was an error posting the high score: " + hs_post.error);
+        }
+        else
+        {
+            Debug.Log(hs_post.downloadHandler.text);
         }
     }
 
@@ -224,46 +222,51 @@ public class LabManager : MonoBehaviour
             {
                 Debug.Log(hs_get.downloadHandler.text);
 
-                LabInstance li = JsonUtility.FromJson<LabInstance>(hs_get.downloadHandler.text);
-
-                laser.transform.position = li.lm.pos;
-                laser.transform.rotation = li.lm.rot;
-
-                rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.worldRM.presetRefraction));
-                rm.SetCustomRefraction(li.worldRM.n);
-
-                int x = 0;
-
-                foreach (RefractableMaterial rm in rms)
-                {
-                    rm.transform.position = li.refractableMaterials.materials[x].pos;
-                    rm.transform.rotation = li.refractableMaterials.materials[x].rot;
-                    rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.refractableMaterials.materials[x].presetRefraction));
-                    rm.SetCustomRefraction(li.refractableMaterials.materials[x].n);
-
-                    x++;
-                }
-
-                while (rms.Count < li.refractableMaterials.materials.Count)
-                {
-                    RefractableMaterial temp = AddObject();
-
-                    temp.transform.position = li.refractableMaterials.materials[x].pos;
-                    temp.transform.rotation = li.refractableMaterials.materials[x].rot;
-                    temp.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.refractableMaterials.materials[x].presetRefraction));
-
-                    Debug.Log(li.refractableMaterials.materials[x].presetRefraction);
-                    Debug.Log("PR: " + temp.GetPresetIndex());
-
-                    temp.SetCustomRefraction(li.refractableMaterials.materials[x].n);
-
-                    x++;
-                }
+                SetUpWorld(hs_get.downloadHandler.text);
             }
         }
     }
 
-    public string Md5Sum(string strToEncrypt)
+    public void SetUpWorld(string json)
+    {
+        LabInstance li = JsonUtility.FromJson<LabInstance>(json);
+
+        laser.transform.position = li.lm.pos;
+        laser.transform.rotation = li.lm.rot;
+
+        rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.worldRM.presetRefraction));
+        rm.SetCustomRefraction(li.worldRM.n);
+
+        int x = 0;
+
+        foreach (RefractableMaterial rm in rms)
+        {
+            rm.transform.position = li.refractableMaterials.materials[x].pos;
+            rm.transform.rotation = li.refractableMaterials.materials[x].rot;
+            rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.refractableMaterials.materials[x].presetRefraction));
+            rm.SetCustomRefraction(li.refractableMaterials.materials[x].n);
+
+            x++;
+        }
+
+        while (rms.Count < li.refractableMaterials.materials.Count)
+        {
+            RefractableMaterial temp = AddObject();
+
+            temp.transform.position = li.refractableMaterials.materials[x].pos;
+            temp.transform.rotation = li.refractableMaterials.materials[x].rot;
+            temp.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.refractableMaterials.materials[x].presetRefraction));
+
+            Debug.Log(li.refractableMaterials.materials[x].presetRefraction);
+            Debug.Log("PR: " + temp.GetPresetIndex());
+
+            temp.SetCustomRefraction(li.refractableMaterials.materials[x].n);
+
+            x++;
+        }
+    }
+
+    public static string Md5Sum(string strToEncrypt)
     {
         System.Text.UTF8Encoding ue = new System.Text.UTF8Encoding();
         byte[] bytes = ue.GetBytes(strToEncrypt);
@@ -282,4 +285,6 @@ public class LabManager : MonoBehaviour
 
         return hashString.PadLeft(32, '0');
     }
+
+    
 }
