@@ -1,5 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿/*
+ * This class contains user credentials used throughout the lab.
+ */
+
 using UnityEngine;
 
 public class User : MonoBehaviour
@@ -10,6 +12,9 @@ public class User : MonoBehaviour
     public static User instance;
     public bool guest;
 
+    /*
+     * keeps the same user object throughout scenes
+     */
     void Awake()
     {
         if (instance == null)

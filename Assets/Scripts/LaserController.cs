@@ -1,6 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿/*
+ * This class is the laser controller of the lab, handles simulating
+ * Snell's law, as well as rotating through user input
+ */
+
+using System;
 using UnityEngine;
 
 [Serializable]
@@ -26,13 +29,12 @@ public class LaserController : MonoBehaviour
     private float degrees1;
     private float degrees2;
 
-	// Use this for initialization
+	// initialize fields
 	void Start () {
         lr = GetComponent<LineRenderer>();
         lm = FindObjectOfType<LabManager>();
 	}
 	
-	// Update is called once per frame
 	void Update () {
         Rotate();
 
@@ -43,6 +45,9 @@ public class LaserController : MonoBehaviour
         RayOut(transform.position, transform.forward, 0);
     }
 
+    /*
+     * rotate laser through input
+     */
     public void Rotate()
     {
         if (Input.GetAxisRaw("Horizontal") > 0.0f)
@@ -55,22 +60,28 @@ public class LaserController : MonoBehaviour
         }
     }
 
-    //Function will take in n degrees and convert to radians
+    /*
+     * takes in n degrees and convert to radians
+     */
     public float toRadians(float n)
     {
         n = n * Mathf.PI / 180;
         return n;
     }
 
-    //Function will take in n radians and return degrees
+    /*
+     * takes in n radians and return degrees
+     */
     public float toDegrees(float n)
     {
         n = n *  180 / Mathf.PI;
         return n;
     }
 
-    //Function will take in n1, n2, and degrees1. n is the index of refraction, degrees1 is the angle of entry.
-    //Returns refractOut, the angle of exit into the new material.
+    /*
+     * takes in n1, n2, and degrees1. n is the index of refraction, degrees1 is the angle of entry.
+     * returns refractOut, the angle of exit into the new material.
+     */
     public float snellCalculator(float n1, float n2, float degrees1) {
         float refractOut;
 

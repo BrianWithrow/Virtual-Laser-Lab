@@ -1,8 +1,11 @@
-﻿using System.Collections;
+﻿/*
+ * This class handles the UI componenets of the lab scene, as well as its
+ * interactions with objects in the scene.
+ */
+
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using System;
 
 public class LabUI : MonoBehaviour
@@ -61,10 +64,12 @@ public class LabUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // laser object is currently selected
         if (lm.obj.GetComponent<LaserController>() != null)
         {
             RunLaserUIComponents();
         }
+        // refractable material is currently selected
         else
         {
             RunRMUIComponents();
@@ -80,6 +85,9 @@ public class LabUI : MonoBehaviour
         }
     }
 
+    /*
+     * enable UI components for the laser object
+     */
     public void RunLaserUIComponents()
     {
         ShowToggle(true);
@@ -88,6 +96,9 @@ public class LabUI : MonoBehaviour
         objText.text = "Laser";
     }
 
+    /*
+     * enable UI components for refractable material objects
+     */
     public void RunRMUIComponents()
     {
         ShowToggle(false);
@@ -114,14 +125,18 @@ public class LabUI : MonoBehaviour
     {
         positionText.text = "Position: " + lm.obj.transform.position;
 
+        // user is not entering the angle manually
         if (!editingAngleField)
         {
+            // editing angle through slider
             if (draggingAngleSlider)
             {
+                // set object's rotation to angle slider
                 lm.obj.transform.rotation = Quaternion.Euler(new Vector3(0.0f, angleSlider.value, 0.0f));
             }
             else
             {
+                // set angle slider value the selected object's euler angle y axis
                 angleSlider.value = lm.obj.transform.rotation.eulerAngles.y;
             }
 
@@ -129,6 +144,9 @@ public class LabUI : MonoBehaviour
         }
     }
 
+    /*
+     * handles lab environment UI components
+     */
     private void RunLabUIComponents()
     {
         worldIndexesMenu.value = lm.rm.GetPresetIndex();
@@ -146,6 +164,9 @@ public class LabUI : MonoBehaviour
         objsText.text = "" + lm.ObjectCount();
     }
 
+    /*
+     * show enable laser toggle button
+     */
     public void ShowToggle(bool set)
     {
         laserEnabled.enabled = set;
@@ -158,6 +179,12 @@ public class LabUI : MonoBehaviour
         laserEnabled.GetComponentInChildren<Text>().enabled = set;
     }
 
+    /*
+     * show index of refraction UI components:
+     * -text
+     * -input field
+     * -dropdown menu
+     */
     public void ShowIndexComponents(bool set)
     {
         refractionText.enabled = set;
@@ -176,28 +203,42 @@ public class LabUI : MonoBehaviour
         indexesMenu.GetComponentInChildren<Text>().enabled = set;
     }
 
+    /*
+     * checks input in input field
+     */
     public float CheckFieldInputs(string input, float min, float max)
     {
         try
         {
+            // clamp input
             return (Mathf.Clamp(float.Parse(input), min, max));
         }
         catch
         {
+            // if input returns an exception set field as 0.0f
             return 0.0f;
         }
     }
 
+    /*
+     * when angle slider is being dragged
+     */
     public void OnDragAngleSlider()
     {
         draggingAngleSlider = true;
     }
 
+    /*
+     * when angle input field is selected
+     */
     public void OnSelectAngleInput()
     {
         editingAngleField = true;
     }
 
+    /*
+     * when angle in input field is submitted
+     */
     public void OnSubmitAngle()
     {
         float newAngle = CheckFieldInputs(angleText.text, 0.0f, 360.0f);
@@ -208,13 +249,19 @@ public class LabUI : MonoBehaviour
 
         editingAngleField = false;
     }
-
+    
+    /*
+     * enables/disables laser components when toggle button is clicked
+     */
     public void ToggleChange()
     {
         lm.obj.GetComponent<LaserController>().enabled = laserEnabled.isOn;
         lm.obj.GetComponent<LineRenderer>().enabled = laserEnabled.isOn;
     }
 
+    /*
+     * when a new preset index of refraction is set for a selected object
+     */
     public void OnIndexChange()
     {
         RefractableMaterial rm = lm.obj.GetComponent<RefractableMaterial>();
@@ -222,21 +269,33 @@ public class LabUI : MonoBehaviour
         rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), indexesMenu.value));
     }
 
+    /*
+     * when a new preset index of refraction is set for the environment object
+     */
     public void OnWorldIndexChange()
     {
         lm.rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), worldIndexesMenu.value));
     }
 
+    /*
+     * when a new custom index of refraction is entered for a selected object
+     */
     public void OnSubmitIndex()
     {
         refractionField.text = NewIndex(lm.obj.GetComponent<RefractableMaterial>(), refractionField.text);
     }
 
+    /*
+     * when a new custom index of refraction is entered for the environment object
+     */
     public void OnSubmitWorldIndex()
     {
         worldRefractionField.text = NewIndex(lm.rm, worldRefractionField.text);
     }
 
+    /*
+     * when a new custom index of refraction is entered
+     */
     public string NewIndex(RefractableMaterial rm, string input)
     {
         float newRefraction = CheckFieldInputs(input, 0.0f, 10.0f);
