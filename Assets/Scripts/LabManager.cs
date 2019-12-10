@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+// lab instance model for serializing to JSON
 [Serializable]
 public class LabInstance
 {
@@ -106,7 +107,7 @@ public class LabManager : MonoBehaviour
      */
     public void RemoveObject()
     {
-        if (rms.Count > 0)
+        if (rms.Count > 1)
         {
             RefractableMaterial removeRM = rms[rms.Count - 1];
 

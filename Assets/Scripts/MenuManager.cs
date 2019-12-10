@@ -10,24 +10,24 @@ using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
-    public GameObject usernameField;
-    public GameObject passwordField;
+    public GameObject usernameField;            // username sign in field
+    public GameObject passwordField;            // password sign in field
 
-    public GameObject usernameFieldSignIn;
-    public GameObject passwordFieldSignIn;
+    public GameObject createUserUsernameField;  // create account username field
+    public GameObject createUserPasswordField;  // create account password field
 
-    public GameObject saveButton;
-    public GameObject loadButton;
+    public GameObject saveButton;               // lab scene save button
+    public GameObject loadButton;               // lab scene load button
 
-    public Text validationText;
-    public Text logInValidation;
+    public Text validationText;                 // text to notify users of their input in create account screen
+    public Text logInValidation;                // text to notify users of their input in login screen
 
-    public string username;
-    public string password;
+    public string username;                     // username string field
+    public string password;                     // password string field
 
-    public User user;
+    public User user;                           // user instance
 
-    public bool checkingUser;
+    public bool checkingUser;                   // bool to use when checking user input
 
     void Awake()
     {
@@ -37,7 +37,7 @@ public class MenuManager : MonoBehaviour
         if (SceneManager.GetActiveScene().buildIndex == 0)
         {
             passwordField.GetComponent<InputField>().inputType = InputField.InputType.Password;
-            passwordFieldSignIn.GetComponent<InputField>().inputType = InputField.InputType.Password;
+            createUserPasswordField.GetComponent<InputField>().inputType = InputField.InputType.Password;
         }
     }
 
@@ -93,7 +93,7 @@ public class MenuManager : MonoBehaviour
         if (!checkingUser)
         {
             // the user did not enter any text into the user/password boxes.
-            if (usernameFieldSignIn.GetComponent<InputField>().text == "" || passwordFieldSignIn.GetComponent<InputField>().text == "")
+            if (createUserUsernameField.GetComponent<InputField>().text == "" || createUserPasswordField.GetComponent<InputField>().text == "")
             {
                 validationText.text = "Please insert a Username/Password.";
             }
@@ -112,8 +112,8 @@ public class MenuManager : MonoBehaviour
     {
         checkingUser = true;
         
-        username = usernameFieldSignIn.GetComponent<InputField>().text;
-        password = passwordFieldSignIn.GetComponent<InputField>().text;
+        username = createUserUsernameField.GetComponent<InputField>().text;
+        password = createUserPasswordField.GetComponent<InputField>().text;
 
         // send get request to php script to check username and password
         string getInstanceURL = "http://69.88.163.18/virtuallaserlab/checkuser.php?";

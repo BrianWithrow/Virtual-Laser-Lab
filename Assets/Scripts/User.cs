@@ -6,11 +6,11 @@ using UnityEngine;
 
 public class User : MonoBehaviour
 {
-    public string username;
-    public string password;
+    public string username;         // username of the current user
+    public string password;         // password of the current user
 
-    public static User instance;
-    public bool guest;
+    public static User instance;    // instance to keep user object active in between scenes
+    public bool guest;              // checks if current user is a guest
 
     /*
      * keeps the same user object throughout scenes

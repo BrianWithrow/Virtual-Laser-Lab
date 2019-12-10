@@ -6,6 +6,7 @@
 using System;
 using UnityEngine;
 
+// model for serializing laser object to JSON
 [Serializable]
 public class LaserModel
 {
@@ -21,10 +22,10 @@ public class LaserModel
 
 public class LaserController : MonoBehaviour
 {
-    public float rotationSpeed;
+    public float rotationSpeed;                 // rotating speed when using keyboard inputs
 
-    private LineRenderer lr;
-    private LabManager lm;
+    private LineRenderer lr;                    // line renderer to visualize laser ray
+    private LabManager lm;                      // lab manager instance
     
     private float degrees1;
     private float degrees2;

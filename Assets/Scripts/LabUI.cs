@@ -15,23 +15,23 @@ public class LabUI : MonoBehaviour
     public Text refractionText;
     public Text objsText;
      
-    public InputField angleText;
-    public InputField refractionField;
-    public InputField worldRefractionField;
+    public InputField angleText;                // input field for object's angle
+    public InputField refractionField;          // input field for object's index of refraction
+    public InputField worldRefractionField;     // input field for the environments index of refraction
 
-    public Slider angleSlider;
+    public Slider angleSlider;                  // slider for changing object's angle
 
-    public Toggle laserEnabled;
+    public Toggle laserEnabled;                 // toggle for enabling and disabling laser object
 
-    public Dropdown indexesMenu;
-    public Dropdown worldIndexesMenu;
+    public Dropdown indexesMenu;                // drop down menu filled preset indexe of refraction for objects
+    public Dropdown worldIndexesMenu;           // drop down menu filled preset indexe of refraction for the environment
 
     private List<string> indexesOfRefraction;
 
-    private LabManager lm;
+    private LabManager lm;                      // instance of lab manager
     
-    private bool draggingAngleSlider;
-    private bool editingAngleField;
+    private bool draggingAngleSlider;           // bool to check if angle slider is being dragged
+    private bool editingAngleField;             // bool to check if angle field is being edited
 
     // Start is called before the first frame update
     void Start()

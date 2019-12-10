@@ -1,8 +1,14 @@
-﻿using System;
+﻿/*
+ * This class defines the materails that refract the 
+ * laser with their index of refraction.
+ */
+
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// model for serializing a list of refractable materials to JSON
 [Serializable]
 public class RefractableMaterials
 {
@@ -15,6 +21,7 @@ public class RefractableMaterials
     }
 }
 
+// model for serializing refractable materials to JSON
 [Serializable]
 public class RefractableMaterialModel
 {
@@ -65,11 +72,11 @@ public class RefractableMaterial : MonoBehaviour
         INDEXES_OF_REFRACTION
     };
 
-    public Text text;
+    public Text text;                               // displays refracted angle in the lab scene
     
-    private IndexesOfRefraction presetRefraction;
+    private IndexesOfRefraction presetRefraction;   // current preset refraction
     
-    private float n;
+    private float n;                                // index of refraction
 
     // Start is called before the first frame update
     void Awake()
