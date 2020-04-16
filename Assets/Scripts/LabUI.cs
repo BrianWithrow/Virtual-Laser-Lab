@@ -13,20 +13,33 @@ public class LabUI : MonoBehaviour
     public Text objText;
     public Text positionText;
     public Text refractionText;
+    public Text shapeText;
     public Text objsText;
+    public Text scaleSliderText;
+    public Text rText;
+    public Text gText;
+    public Text bText;
+
      
     public InputField angleText;                // input field for object's angle
     public InputField refractionField;          // input field for object's index of refraction
     public InputField worldRefractionField;     // input field for the environments index of refraction
 
     public Slider angleSlider;                  // slider for changing object's angle
+    public Slider scaleSlider;                  // slider for changing object's scale
+    public Slider rSlider;                      // slider for changing laser's red color value
+    public Slider gSlider;                      // slider for changing laser's green color value
+    public Slider bSlider;                      // slider for changing laser's blue color value
 
+    public Toggle reflectable;                  // toggle for enabling and disabling reflectability on object
     public Toggle laserEnabled;                 // toggle for enabling and disabling laser object
 
-    public Dropdown indexesMenu;                // drop down menu filled preset indexe of refraction for objects
-    public Dropdown worldIndexesMenu;           // drop down menu filled preset indexe of refraction for the environment
+    public Dropdown indexesMenu;                // drop down menu filled preset indexes of refraction for objects
+    public Dropdown worldIndexesMenu;           // drop down menu filled preset indexes of refraction for the environment
+    public Dropdown shapesMenu;                 // drop down menu filled preset shapes for objects
 
     private List<string> indexesOfRefraction;
+    private List<string> shapes;
 
     private LabManager lm;                      // instance of lab manager
     
@@ -57,8 +70,20 @@ public class LabUI : MonoBehaviour
 
         this.indexesOfRefraction.RemoveAt(this.indexesOfRefraction.Count - 1);
 
+        var shapes = Enum.GetValues(typeof(RefractableMaterial.Shapes));
+
+        this.shapes = new List<string>();
+
+        foreach (RefractableMaterial.Shapes index in shapes)
+        {
+            this.shapes.Add(index.ToString());
+        }
+
+        this.shapes.RemoveAt(this.shapes.Count - 1);
+
         indexesMenu.AddOptions(this.indexesOfRefraction);
         worldIndexesMenu.AddOptions(this.indexesOfRefraction);
+        shapesMenu.AddOptions(this.shapes);
     }
 
     // Update is called once per frame
@@ -90,8 +115,41 @@ public class LabUI : MonoBehaviour
      */
     public void RunLaserUIComponents()
     {
-        ShowToggle(true);
+        LaserController lc = lm.obj.GetComponent<LaserController>();
+
+        if (lm.ObjHasChanged())
+        {
+            laserEnabled.isOn = lc.enabled;
+            rSlider.value = lc.color.r;
+            gSlider.value = lc.color.g;
+            bSlider.value = lc.color.b;
+
+            lm.HasObjChanged(false);
+        }
+
+        ShowToggle(reflectable, false);
+        ShowToggle(laserEnabled, true);
         ShowIndexComponents(false);
+        ShowShapeComponents(false);
+
+        rSlider.gameObject.SetActive(true);
+        gSlider.gameObject.SetActive(true);
+        bSlider.gameObject.SetActive(true);
+
+        rText.gameObject.SetActive(true);
+        gText.gameObject.SetActive(true);
+        bText.gameObject.SetActive(true);
+        
+        scaleSlider.gameObject.SetActive(false);
+        scaleSliderText.gameObject.SetActive(false);
+
+        rText.text = "Red: " + rSlider.value;
+        gText.text = "Green: " + gSlider.value;
+        bText.text = "Blue: " + bSlider.value;
+
+        lc.color.r = rSlider.value;
+        lc.color.g = gSlider.value;
+        lc.color.b = bSlider.value;
 
         objText.text = "Laser";
     }
@@ -101,12 +159,39 @@ public class LabUI : MonoBehaviour
      */
     public void RunRMUIComponents()
     {
-        ShowToggle(false);
+        RefractableMaterial rm = lm.obj.GetComponent<RefractableMaterial>();
+
+        if (lm.ObjHasChanged())
+        {
+            reflectable.isOn = rm.IsReflectable();
+            scaleSlider.value = rm.transform.localScale.x;
+            
+            lm.HasObjChanged(false);
+            
+            shapesMenu.value = rm.GetShape();
+        }
+
+        ShowToggle(reflectable, true);
+        ShowToggle(laserEnabled, false);
         ShowIndexComponents(true);
+        ShowShapeComponents(true);
+
+        rSlider.gameObject.SetActive(false);
+        gSlider.gameObject.SetActive(false);
+        bSlider.gameObject.SetActive(false);
+
+        rText.gameObject.SetActive(false);
+        gText.gameObject.SetActive(false);
+        bText.gameObject.SetActive(false);
+
+        scaleSlider.gameObject.SetActive(true);
+        scaleSliderText.gameObject.SetActive(true);
+
+        scaleSliderText.text = "Scale: " + scaleSlider.value;
+
+        rm.transform.localScale = Vector3.one * scaleSlider.value;
 
         objText.text = "Refractable Material";
-
-        RefractableMaterial rm = lm.obj.GetComponent<RefractableMaterial>();
 
         indexesMenu.value = rm.GetPresetIndex();
 
@@ -167,16 +252,16 @@ public class LabUI : MonoBehaviour
     /*
      * show enable laser toggle button
      */
-    public void ShowToggle(bool set)
+    public void ShowToggle(Toggle toggle, bool set)
     {
-        laserEnabled.enabled = set;
+        toggle.enabled = set;
         
-        foreach (Image image in laserEnabled.GetComponentsInChildren<Image>())
+        foreach (Image image in toggle.GetComponentsInChildren<Image>())
         {
             image.enabled = set;
         }
 
-        laserEnabled.GetComponentInChildren<Text>().enabled = set;
+        toggle.GetComponentInChildren<Text>().enabled = set;
     }
 
     /*
@@ -201,6 +286,24 @@ public class LabUI : MonoBehaviour
             image.enabled = set;
         }
         indexesMenu.GetComponentInChildren<Text>().enabled = set;
+    }
+
+    /*
+     * show shape UI components:
+     * -text
+     * -dropdown menu
+     */
+    public void ShowShapeComponents(bool set)
+    {
+        shapeText.enabled = set;
+
+        shapesMenu.enabled = set;
+        shapesMenu.image.enabled = set;
+        foreach (Image image in shapesMenu.GetComponentsInChildren<Image>())
+        {
+            image.enabled = set;
+        }
+        shapesMenu.GetComponentInChildren<Text>().enabled = set;
     }
 
     /*
@@ -255,9 +358,28 @@ public class LabUI : MonoBehaviour
      */
     public void ToggleChange()
     {
-        lm.obj.GetComponent<LaserController>().enabled = laserEnabled.isOn;
-        lm.obj.GetComponent<LineRenderer>().enabled = laserEnabled.isOn;
+        LaserController lc = lm.obj.GetComponent<LaserController>();
+
+        if (lc != null && !lm.ObjHasChanged())
+        {
+            lc.enabled = laserEnabled.isOn;
+            lc.GetComponent<LineRenderer>().enabled = laserEnabled.isOn;
+        }
     }
+
+    /*
+     * enables/disables laser components when toggle button is clicked
+     */
+    public void ReflectableToggleChange()
+    {
+        RefractableMaterial rm = lm.obj.GetComponent<RefractableMaterial>();
+
+        if (rm != null && !lm.ObjHasChanged())
+        {
+            rm.SetReflectable(reflectable.isOn);
+        }
+    }
+
 
     /*
      * when a new preset index of refraction is set for a selected object
@@ -275,6 +397,16 @@ public class LabUI : MonoBehaviour
     public void OnWorldIndexChange()
     {
         lm.rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), worldIndexesMenu.value));
+    }
+
+    /*
+     * when a new shape is set for the environment object
+     */
+    public void OnShapeIndexChange()
+    {
+        RefractableMaterial rm = lm.obj.GetComponent<RefractableMaterial>();
+        
+        rm.SetShape((RefractableMaterial.Shapes)Enum.ToObject(typeof(RefractableMaterial.Shapes), shapesMenu.value));
     }
 
     /*

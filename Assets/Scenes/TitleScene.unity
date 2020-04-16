@@ -1757,8 +1757,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   usernameField: {fileID: 2143136534}
   passwordField: {fileID: 1723468033}
-  usernameFieldSignIn: {fileID: 797443765}
-  passwordFieldSignIn: {fileID: 844453749}
+  createUserUsernameField: {fileID: 797443765}
+  createUserPasswordField: {fileID: 844453749}
   saveButton: {fileID: 0}
   loadButton: {fileID: 0}
   validationText: {fileID: 431964550}

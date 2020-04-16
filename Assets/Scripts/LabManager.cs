@@ -31,6 +31,8 @@ public class LabManager : MonoBehaviour
     private LaserController laser;              // laser object in lab scene
 
     private bool drag;                          // used to check if an object is being dragged by mouse
+
+    private bool objChanged;
     
     public string defaultInstance;              // json string of default instance
 
@@ -39,6 +41,8 @@ public class LabManager : MonoBehaviour
     {
         rm = GetComponent<RefractableMaterial>();
         laser = FindObjectOfType<LaserController>();
+
+        obj = laser.gameObject;
 
         rm.SetPresetRefraction(RefractableMaterial.IndexesOfRefraction.AIR);
 
@@ -77,6 +81,7 @@ public class LabManager : MonoBehaviour
                     if (obj == null || hitInfo.transform != obj.transform)
                     {
                         obj = hitInfo.transform.gameObject;
+                        objChanged = true;
                     }
                 
                     drag = true;
@@ -195,6 +200,16 @@ public class LabManager : MonoBehaviour
         }
     }
 
+    public void HasObjChanged(bool objChanged)
+    {
+        this.objChanged = objChanged;
+    }
+
+    public bool ObjHasChanged()
+    {
+        return objChanged;
+    }
+
     /*
      * updates user's saved lab instance
      */
@@ -264,15 +279,15 @@ public class LabManager : MonoBehaviour
     public string GenerateJSON()
     {
         // create instances of objecct models
-        LaserModel lm = new LaserModel(laser.transform.position, laser.transform.rotation);
+        LaserModel lm = new LaserModel(laser.transform.position, laser.transform.rotation, laser.color);
 
-        RefractableMaterialModel worldRM = new RefractableMaterialModel(rm.GetPresetIndex(), rm.GetN(), rm.transform.position, rm.transform.rotation);
+        RefractableMaterialModel worldRM = new RefractableMaterialModel(rm.GetPresetIndex(), rm.GetShape(), rm.GetN(), rm.transform.position, rm.transform.rotation, rm.transform.localScale, false);
 
         RefractableMaterials serializeRMs = new RefractableMaterials();
 
         foreach (RefractableMaterial rm in rms)
         {
-            serializeRMs.materials.Add(new RefractableMaterialModel(rm.GetPresetIndex(), rm.GetN(), rm.transform.position, rm.transform.rotation));
+            serializeRMs.materials.Add(new RefractableMaterialModel(rm.GetPresetIndex(), rm.GetShape(), rm.GetN(), rm.transform.position, rm.transform.rotation, rm.transform.localScale, rm.IsReflectable()));
         }
 
         LabInstance li = new LabInstance();
@@ -296,6 +311,7 @@ public class LabManager : MonoBehaviour
         // set laser object from json
         laser.transform.position = li.lm.pos;
         laser.transform.rotation = li.lm.rot;
+        laser.color = li.lm.color;
 
         // set lab manager's refratable material componenet from json
         rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.worldRM.presetRefraction));
@@ -308,8 +324,14 @@ public class LabManager : MonoBehaviour
         {
             rm.transform.position = li.refractableMaterials.materials[x].pos;
             rm.transform.rotation = li.refractableMaterials.materials[x].rot;
+            rm.transform.localScale = li.refractableMaterials.materials[x].scale == Vector3.zero? Vector3.one : li.refractableMaterials.materials[x].scale;
+
             rm.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.refractableMaterials.materials[x].presetRefraction));
             rm.SetCustomRefraction(li.refractableMaterials.materials[x].n);
+        
+            rm.SetShape((RefractableMaterial.Shapes)Enum.ToObject(typeof(RefractableMaterial.Shapes), li.refractableMaterials.materials[x].shape));
+
+            rm.SetReflectable(li.refractableMaterials.materials[x].reflectable);
 
             x++;
         }
@@ -321,15 +343,19 @@ public class LabManager : MonoBehaviour
 
             temp.transform.position = li.refractableMaterials.materials[x].pos;
             temp.transform.rotation = li.refractableMaterials.materials[x].rot;
+            temp.transform.localScale = li.refractableMaterials.materials[x].scale == Vector3.zero? Vector3.one : li.refractableMaterials.materials[x].scale;
+
             temp.SetPresetRefraction((RefractableMaterial.IndexesOfRefraction)Enum.ToObject(typeof(RefractableMaterial.IndexesOfRefraction), li.refractableMaterials.materials[x].presetRefraction));
-
-            Debug.Log(li.refractableMaterials.materials[x].presetRefraction);
-            Debug.Log("PR: " + temp.GetPresetIndex());
-
             temp.SetCustomRefraction(li.refractableMaterials.materials[x].n);
+
+            temp.SetShape((RefractableMaterial.Shapes)Enum.ToObject(typeof(RefractableMaterial.Shapes), li.refractableMaterials.materials[x].shape));
+
+            temp.SetReflectable(li.refractableMaterials.materials[x].reflectable);
 
             x++;
         }
+
+        objChanged = true;
     }
 
     /*

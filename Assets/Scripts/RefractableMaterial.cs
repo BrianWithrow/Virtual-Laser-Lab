@@ -25,13 +25,19 @@ public class RefractableMaterials
 [Serializable]
 public class RefractableMaterialModel
 {
-    public RefractableMaterialModel(int pr, float n, Vector3 pos, Quaternion rot)
+    public RefractableMaterialModel(int pr, int shape,float n, Vector3 pos, Quaternion rot, Vector3 scale, bool reflectable)
     {
         presetRefraction = pr;
+        this.shape = shape;
         this.n = n;
         this.pos = pos;
         this.rot = rot;
+        this.scale = scale;
+        this.reflectable = reflectable;
     }
+
+    [SerializeField]
+    public int shape;
 
     [SerializeField]
     public int presetRefraction;
@@ -40,10 +46,15 @@ public class RefractableMaterialModel
     public float n;
 
     [SerializeField]
+    public bool reflectable;
+
+    [SerializeField]
     public Vector3 pos;
 
     [SerializeField]
     public Quaternion rot;
+    [SerializeField]
+    public Vector3 scale;
 }
 
 public class RefractableMaterial : MonoBehaviour
@@ -72,18 +83,70 @@ public class RefractableMaterial : MonoBehaviour
         INDEXES_OF_REFRACTION
     };
 
+    public enum Shapes 
+    {
+        CUBE,
+        SPHERE,
+        SHAPES
+    }
+
+    public Shapes currentShape;
+
     public Text text;                               // displays refracted angle in the lab scene
     
     private IndexesOfRefraction presetRefraction;   // current preset refraction
+
+    private MeshFilter filter;
+    [SerializeField]
+    private Mesh cube;
+    [SerializeField]
+    private Mesh sphere;
+
+    private Collider currentCollider;
+    private BoxCollider bCollider;
+    private SphereCollider sCollider;
     
     private float n;                                // index of refraction
+
+    private bool reflectable;
 
     // Start is called before the first frame update
     void Awake()
     {
         presetRefraction = IndexesOfRefraction.WINDOW_GLASS;
 
+        filter = GetComponent<MeshFilter>();
+
+        bCollider = GetComponent<BoxCollider>();
+        sCollider = GetComponent<SphereCollider>();
+
+        currentCollider = bCollider;
+
+        SetShape(Shapes.SPHERE);
+
         n = 1.52f;
+    }
+
+    public void SetShape(Shapes shape)
+    {
+        if (sCollider == null && bCollider == null)
+            return;
+        
+        currentCollider.enabled = false;
+
+        switch(shape)
+        {
+            case Shapes.CUBE:
+                filter.mesh = cube;
+                bCollider.enabled = true;
+                break;
+            case Shapes.SPHERE:
+                filter.mesh = sphere;
+                sCollider.enabled = true;
+                break;
+        }
+
+        currentShape = shape;
     }
 
     public void SetPresetRefraction(IndexesOfRefraction preset)
@@ -104,6 +167,16 @@ public class RefractableMaterial : MonoBehaviour
     public void SetRot(Quaternion rot)
     {
         transform.rotation = rot;
+    }
+
+    public void SetReflectable(bool reflectable)
+    {
+        this.reflectable = reflectable;
+    }
+
+    public int GetShape()
+    {
+        return (int)currentShape;
     }
 
     public int GetPresetIndex()
@@ -159,5 +232,10 @@ public class RefractableMaterial : MonoBehaviour
     public float GetN()
     {
         return n;
+    }
+
+    public bool IsReflectable()
+    {
+        return reflectable;
     }
 }

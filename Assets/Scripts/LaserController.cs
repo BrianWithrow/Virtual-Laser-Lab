@@ -12,11 +12,13 @@ public class LaserModel
 {
     public Vector3 pos;
     public Quaternion rot;
+    public Color color;
 
-    public LaserModel(Vector3 pos, Quaternion rot)
+    public LaserModel(Vector3 pos, Quaternion rot, Color color)
     {
         this.pos = pos;
         this.rot = rot;
+        this.color = color;
     }
 }
 
@@ -26,6 +28,8 @@ public class LaserController : MonoBehaviour
 
     private LineRenderer lr;                    // line renderer to visualize laser ray
     private LabManager lm;                      // lab manager instance
+
+    public Color color;
     
     private float degrees1;
     private float degrees2;
@@ -33,6 +37,9 @@ public class LaserController : MonoBehaviour
 	// initialize fields
 	void Start () {
         lr = GetComponent<LineRenderer>();
+
+        color = Color.white;
+
         lm = FindObjectOfType<LabManager>();
 	}
 	
@@ -42,6 +49,7 @@ public class LaserController : MonoBehaviour
         lm.ResetWorldText();
 
         lr.positionCount = 2;
+        lr.material.color = color;
 
         RayOut(transform.position, transform.forward, 0);
     }
@@ -107,36 +115,49 @@ public class LaserController : MonoBehaviour
             {
                 RefractableMaterial rm = hit.transform.gameObject.GetComponent<RefractableMaterial>();
 
-                lr.positionCount = currentLinePosition + 4;
-
                 degrees1 = 180 - Vector3.SignedAngle(ray.direction, hit.normal, Vector3.up);
-                degrees2 = toDegrees(snellCalculator(lm.rm.GetIndexOfRefraction(), rm.GetIndexOfRefraction(), degrees1));
 
-                rm.text.text = 
-                    "θ1: " + String.Format("{0:0.000}", degrees1) + "\n" + 
-                    "θ2: " + String.Format("{0:0.000}", degrees2);
+                if (!rm.IsReflectable()){
+                    lr.positionCount = currentLinePosition + 4;
+                    degrees2 = toDegrees(snellCalculator(lm.rm.GetIndexOfRefraction(), rm.GetIndexOfRefraction(), degrees1));
 
-                // render line from laser to point of contact with material
-                lr.SetPosition(currentLinePosition++, hit.point);
+                    rm.text.text = 
+                        "θ1: " + String.Format("{0:0.000}", degrees1) + "\n" + 
+                        "θ2: " + String.Format("{0:0.000}", degrees2);
 
-                RaycastHit hitExit;
-                Ray rayExit = new Ray();
+                    // render line from laser to point of contact with material
+                    lr.SetPosition(currentLinePosition++, hit.point);
 
-                rayExit.origin = hit.point - ((Quaternion.AngleAxis(degrees2, Vector3.up) * hit.normal).normalized * 1.5f);
-                rayExit.direction = (Quaternion.AngleAxis(degrees2, Vector3.up) * hit.normal).normalized;
+                    RaycastHit hitExit;
+                    Ray rayExit = new Ray();
 
-                if (Physics.Raycast(rayExit, out hitExit, 10.0f))
-                {
-                    if (hitExit.transform == hit.transform)
+                    rayExit.origin = hit.point - ((Quaternion.AngleAxis(degrees2, Vector3.up) * hit.normal).normalized * 1.5f * rm.transform.localScale.x);
+                    rayExit.direction = (Quaternion.AngleAxis(degrees2, Vector3.up) * hit.normal).normalized;
+
+                    if (Physics.Raycast(rayExit, out hitExit, 10.0f))
                     {
-                        degrees1 = 180 - Vector3.SignedAngle(rayExit.direction, hitExit.normal, Vector3.up);
-                        degrees2 = toDegrees(snellCalculator(rm.GetIndexOfRefraction(), lm.rm.GetIndexOfRefraction(), degrees1));
+                        if (hitExit.transform == hit.transform)
+                        {
+                            degrees1 = 180 - Vector3.SignedAngle(rayExit.direction, hitExit.normal, Vector3.up);
+                            degrees2 = toDegrees(snellCalculator(rm.GetIndexOfRefraction(), lm.rm.GetIndexOfRefraction(), degrees1));
 
-                        // render line from contact point to exit point
-                        lr.SetPosition(currentLinePosition++, hitExit.point);
+                            // render line from contact point to exit point
+                            lr.SetPosition(currentLinePosition++, hitExit.point);
 
-                        RayOut(hitExit.point, direction, currentLinePosition);
+                            RayOut(hitExit.point, direction, currentLinePosition);
+                        }
                     }
+                }
+                else 
+                {
+                    lr.positionCount = currentLinePosition + 2;
+                    degrees2 = -degrees1;
+
+                    rm.text.text = 
+                        "θ1: " + String.Format("{0:0.000}", degrees1) + "\n" + 
+                        "θ2: " + String.Format("{0:0.000}", degrees2);
+                    
+                    RayOut(hit.point, (Quaternion.AngleAxis(degrees2, Vector3.up) * hit.normal).normalized, currentLinePosition);
                 }
             }
         }
